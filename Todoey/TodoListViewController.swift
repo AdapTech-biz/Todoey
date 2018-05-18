@@ -10,7 +10,7 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-    let itemArray = ["kdjkdj", "kjdhkjdlkjoijmnw", "kjdojsnkjnwindopl"]
+    var itemArray = ["kdjkdj", "kjdhkjdlkjoijmnw", "kjdojsnkjnwindopl"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,6 +47,36 @@ class TodoListViewController: UITableViewController {
    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         print("Row number \(indexPath.row) was deselected...")
     }
+    
+    //MARK - Add new items
+    ////////////////////////////////////////////////////
+    @IBAction func addButtonPressed(_ sender: Any) {
+        
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
+        
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            // what happends once the user clicks the add item alert action button
+            
+            self.itemArray.append(textField.text!)
+            self.tableView.reloadData()
+            
+        }
+        
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Add new item"
+            textField = alertTextField  // stores a reference to the global textField object for global use in the alert action completion block
+            
+        }
+        
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+    }
+    
+    //////////////////////////////////////////////////////
+    
 
 }
 
