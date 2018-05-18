@@ -10,18 +10,24 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-    var itemArray = ["kdjkdj", "kjdhkjdlkjoijmnw", "kjdojsnkjnwindopl"]
+    var itemArray  = [String]()
+    let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        if let items = defaults.array(forKey: "ToDoListArray") as? [String]{
+            itemArray = items
+        }
+        
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "todoItemCell", for: indexPath)
         
-        
+       
         cell.textLabel?.text = itemArray[indexPath.row]
         return cell
     }
@@ -31,6 +37,7 @@ class TodoListViewController: UITableViewController {
     }
 
     //MARK - TableView Delegate Method
+    ///////////////////////////////////////////////////////
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print("Current row number \(indexPath.row)")
         let cell = tableView.cellForRow(at: indexPath)
@@ -48,6 +55,8 @@ class TodoListViewController: UITableViewController {
         print("Row number \(indexPath.row) was deselected...")
     }
     
+    /////////////////////////////////////////////////////
+    
     //MARK - Add new items
     ////////////////////////////////////////////////////
     @IBAction func addButtonPressed(_ sender: Any) {
@@ -61,6 +70,8 @@ class TodoListViewController: UITableViewController {
             // what happends once the user clicks the add item alert action button
             
             self.itemArray.append(textField.text!)
+            self.defaults.set(self.itemArray, forKey: "ToDoListArray")
+
             self.tableView.reloadData()
             
         }
