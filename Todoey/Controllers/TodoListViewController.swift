@@ -127,13 +127,14 @@ class TodoListViewController: UITableViewController {
     }
     
     func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil){
+        
         // all fetches are NSFetchRequest object and you have to explictly tell the object type of the fetched data
     
         //this perdicate to happen no matter what -- but also welcome new perdicates
         let categoryPerdicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
         
-        if let addditionalPerdicate = predicate {   //optional unwrapping to check if an additional perdicate was passed
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [addditionalPerdicate, categoryPerdicate])
+        if let addditionalPredicate = predicate {   //optional unwrapping to check if an additional perdicate was passed
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPerdicate, addditionalPredicate])
         }else{
             request.predicate = categoryPerdicate
         }
@@ -165,7 +166,7 @@ extension TodoListViewController: UISearchBarDelegate{
         
          request.sortDescriptors = [NSSortDescriptor(key: "text", ascending: true)]
         
-        loadItems(with: request)
+        loadItems(with: request, predicate: request.predicate)
 
     }
     
