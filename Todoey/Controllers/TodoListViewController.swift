@@ -21,11 +21,14 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         print(dataFilePath)
-        loadItems() //loads the saved items
-
+        
+        loadItems() //loads the saved item
         
     }
 
+    func tableviewTapped(){
+        
+    }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "todoItemCell", for: indexPath)
@@ -45,7 +48,7 @@ class TodoListViewController: UITableViewController {
         return itemArray.count
     }
 
-    //MARK - TableView Delegate Method
+    //MARK: - TableView Delegate Method
     ///////////////////////////////////////////////////////
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
@@ -67,7 +70,7 @@ class TodoListViewController: UITableViewController {
     
     /////////////////////////////////////////////////////
     
-    //MARK - Add new items
+    //MARK: - Add new items
     ////////////////////////////////////////////////////
     @IBAction func addButtonPressed(_ sender: Any) {
         
@@ -106,7 +109,7 @@ class TodoListViewController: UITableViewController {
     
     //////////////////////////////////////////////////////
     
-    //MARK - Model Manupulation Methods
+    //MARK: - Model Manupulation Methods
     
     func saveItems(){
         //encodes custom class object type to store into plist file
@@ -120,16 +123,53 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    func loadItems(){
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()){
         // all fetches are NSFetchRequest object and you have to explictly tell the object type of the fetched data
-        let request : NSFetchRequest<Item>  = Item.fetchRequest()   //creates a fetch request from the Item object
+       
         do{
           itemArray =  try context.fetch(request)   //sends the fetch request to the context to get the data from DB
         } catch {
             print("Error fetching items \(error)")
         }
+        
+        tableView.reloadData()
+        
     }
+    
+
     
 
 }
 
+//MARK: - Search bar methods
+extension TodoListViewController: UISearchBarDelegate{
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        //visit https://static.realm.io/downloads/files/NSPredicateCheatsheet.pdf?_ga=2.108278466.1313774674.1526763649-148550912.1526763649  to understand NSPredicate queries
+        request.predicate = NSPredicate(format: "text CONTAINS[cd] %@", searchBar.text!)
+        
+         request.sortDescriptors = [NSSortDescriptor(key: "text", ascending: true)]
+        
+        loadItems(with: request)
+
+    }
+    
+    //Resets the list to the original state
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 { // a blank text field
+            loadItems()
+            
+            //DispatchQueue manages the event threads -- dismisses the keyboard and cursor in the search bar in the foreground
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+    
+
+    
+    
+}
