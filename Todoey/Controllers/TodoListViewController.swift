@@ -11,6 +11,11 @@ import CoreData
 
 class TodoListViewController: UITableViewController {
     
+    var selectedCategory : Category? {
+        didSet{
+            loadItems()
+        }
+    }
     var itemArray  = [Item]()
     //creates a new plist to encode and decode customer data types
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
@@ -21,8 +26,6 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         print(dataFilePath)
-        
-        loadItems() //loads the saved item
         
     }
 
@@ -87,7 +90,7 @@ class TodoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.text = textField.text!
             newItem.checked = false
-            
+            newItem.parentCategory = self.selectedCategory  //sets the relation category of the new task
             self.itemArray.append(newItem)
             
            self.saveItems()
@@ -123,8 +126,17 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()){
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil){
         // all fetches are NSFetchRequest object and you have to explictly tell the object type of the fetched data
+    
+        //this perdicate to happen no matter what -- but also welcome new perdicates
+        let categoryPerdicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let addditionalPerdicate = predicate {   //optional unwrapping to check if an additional perdicate was passed
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [addditionalPerdicate, categoryPerdicate])
+        }else{
+            request.predicate = categoryPerdicate
+        }
        
         do{
           itemArray =  try context.fetch(request)   //sends the fetch request to the context to get the data from DB
