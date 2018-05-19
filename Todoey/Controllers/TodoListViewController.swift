@@ -7,20 +7,22 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
-    var itemArray  = [ItemModel]()
-    let defaults = UserDefaults.standard
+    var itemArray  = [Item]()
+    //creates a new plist to encode and decode customer data types
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+    
+    // context variable set to the context object inside AppDelegage -- uses Singleton to get AppDelegate
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        
-        
-        if let items = defaults.array(forKey: "randomToDoListArray") as? [ItemModel]{
-            itemArray = items
-        }
+        print(dataFilePath)
+        loadItems() //loads the saved items
+
         
     }
 
@@ -49,9 +51,8 @@ class TodoListViewController: UITableViewController {
 
         let selectedItem = itemArray[indexPath.row]
         
-        let cell = tableView.cellForRow(at: indexPath)
-        
         selectedItem.checked = !selectedItem.checked
+        saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
         tableView.reloadData()
@@ -75,19 +76,25 @@ class TodoListViewController: UITableViewController {
         
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         
-        
-        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
-            // what happends once the user clicks the add item alert action button
-            let newItem = ItemModel()
+        // what happends once the user clicks the add item alert action button
+        let action = UIAlertAction(title: "Add Item", style: .default) {
+            
+            (action) in
+            
+            let newItem = Item(context: self.context)
             newItem.text = textField.text!
+            newItem.checked = false
+            
             self.itemArray.append(newItem)
-            self.defaults.set(self.itemArray, forKey: "randomToDoListArray")
-
-            self.tableView.reloadData()
+            
+           self.saveItems()
             
         }
         
-        alert.addTextField { (alertTextField) in
+        alert.addTextField {
+            
+            (alertTextField) in
+            
             alertTextField.placeholder = "Add new item"
             textField = alertTextField  // stores a reference to the global textField object for global use in the alert action completion block
             
@@ -98,6 +105,30 @@ class TodoListViewController: UITableViewController {
     }
     
     //////////////////////////////////////////////////////
+    
+    //MARK - Model Manupulation Methods
+    
+    func saveItems(){
+        //encodes custom class object type to store into plist file
+        
+        do{
+           try self.context.save()
+
+        } catch {
+            print("Error saving context \(error)")
+        }
+        tableView.reloadData()
+    }
+    
+    func loadItems(){
+        // all fetches are NSFetchRequest object and you have to explictly tell the object type of the fetched data
+        let request : NSFetchRequest<Item>  = Item.fetchRequest()   //creates a fetch request from the Item object
+        do{
+          itemArray =  try context.fetch(request)   //sends the fetch request to the context to get the data from DB
+        } catch {
+            print("Error fetching items \(error)")
+        }
+    }
     
 
 }
